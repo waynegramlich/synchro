@@ -6,7 +6,7 @@ from EZCAD3 import *
 
 class Base(Part):
     def __init__(self, up):
-	Part.__init__(self,up)
+	Part.__init__(self, up, "Base")
 	self.left_front_synchro_ = Synchro_Drive(self)
 	self.right_front_synchro_ = Synchro_Drive(self)
 
@@ -27,7 +27,7 @@ class Base(Part):
 
 class Strut_Assembly(Part):
     def __init__(self, up):
-	Part.__init__(self, up)
+	Part.__init__(self, up, "Strut_Assembly")
 	#self.strut_ = Strut(self)
 	self.strut_top_ = Strut_Top(self)
 
@@ -43,7 +43,7 @@ class Strut_Assembly(Part):
 
 class Strut(Part):
     def __init__(self, up):
-	Part.__init__(self, up)
+	Part.__init__(self, up, "Strut")
 
     def construct(self):
 	# Grab some relevant *Part*'s:
@@ -71,7 +71,7 @@ class Strut(Part):
 
 class Strut_Top(Part):
     def __init__(self, up):
-	Part.__init__(self, up)
+	Part.__init__(self, up, "Strut_Top")
 
     def construct(self):
 	# Grab some *Part*'s from the *Part* tree:
@@ -163,19 +163,16 @@ class Strut_Top(Part):
 	z0 = motor_base.b.z
 	z3 = motor_base.t.z
 
-	self.block(comment = "Strut Top Block",
-	  color = Color("orange"),
-	  corner1 = P(q_x, q_y, z0),
-	  corner2 = P(s_x, s_y, z3),
-	  top = "t")
+	self.block("Strut Top Block", Material("", ""), Color("orange"),
+	  P(q_x, q_y, z0), P(s_x, s_y, z3), "t", "")
 
 class Synchro_Drive(Part):
 
     def __init__(self, up):
-	Part.__init__(self, up)
+	Part.__init__(self, up, "Synchro_Drive")
 	self.wheel_assembly_ = Wheel_Assembly(self)
 	self.motor_assembly_ = Motor_Assembly(self)
-	self.strut_assembly_ = Strut_Assembly(self)
+	#self.strut_assembly_ = Strut_Assembly(self)
 
     def construct(self):
 	zero = L()
@@ -187,7 +184,7 @@ class Synchro_Drive(Part):
 
 class Motor_Assembly(Part):
     def __init__(self, up):
-	Part.__init__(self, up)
+	Part.__init__(self, up, "Motor_Assembly")
 	self.motor_base_ = Motor_Base(self)
 	self.motor_base_cover_ = Motor_Base_Cover(self)
 	self.motor_base_screws_ = Motor_Base_Screws(self)
@@ -383,13 +380,14 @@ class Motor_Assembly(Part):
 	drive_motor_pulley_top_z_bottom = drive_motor_pulley.t.z
 	drive_motor_pulley_top_hub_dz = pcb.magnet_z_top_l - \
 	  drive_motor_pulley_top_z_bottom - drive_motor_pulley_top_lip_dz
+
 	drive_motor_pulley_top.configure(
 	  hub_diameter = drive_motor.shaft_diameter_l + L(mm = 6),
 	  hub_dz = drive_motor_pulley_top_hub_dz,
-	  lip_diameter = drive_wheel_pulley.dx,
+	  lip_diameter = drive_wheel_pulley.e.x - drive_wheel_pulley.w.x,
 	  lip_dz = drive_motor_pulley_top_lip_dz,
-	  magnet_diameter = drive_magnet.dx,
-	  magnet_dz = drive_magnet.dz,
+	  magnet_diameter = drive_magnet.e.x - drive_magnet.w.x,
+	  magnet_dz = drive_magnet.dz_l,
 	  shaft_diameter = drive_motor.shaft_diameter_l,
 	  x = drive_motor_shaft_x,
 	  y = drive_motor_shaft_y,
@@ -468,10 +466,10 @@ class Motor_Assembly(Part):
 	twist_motor_pulley_top.configure(
 	  hub_diameter = twist_motor.shaft_diameter_l + L(mm = 6),
 	  hub_dz = twist_motor_pulley_top_hub_dz,
-	  lip_diameter = twist_wheel_pulley.dx,
+	  lip_diameter = twist_wheel_pulley.e.x - twist_wheel_pulley.w.x,
 	  lip_dz = twist_motor_pulley_top_lip_dz,
-	  magnet_diameter = twist_magnet.dx,
-	  magnet_dz = twist_magnet.dz,
+	  magnet_diameter = twist_magnet.e.x - twist_magnet.w.x,
+	  magnet_dz = twist_magnet.dz_l,
 	  set_screw_dz = L(mm = 4.00),
 	  shaft_diameter = twist_motor.shaft_diameter_l,
 	  x = twist_motor_shaft_x,
@@ -484,11 +482,11 @@ class Motor_Assembly(Part):
 
 class Wheel_Assembly(Part):
     def __init__(self, up):
-	Part.__init__(self, up)
+	Part.__init__(self, up, "Wheel_Assembly")
 
 	# List all of the sub-*Part*'s that make up a wheel assembly:
 
-	self.bottom_bearing_ = Bearing(self)
+	self.bottom_bearing_ = Bearing(self, "Bottom_Bearing")
 	self.drive_wheel_pulley_ = Pulley(self)
 	self.drive_wheel_pulley_top_ = Pulley_Top(self)
 	self.drive_wheel_pulley_screws_ = Drive_Wheel_Pulley_Screws(self)
@@ -500,17 +498,17 @@ class Wheel_Assembly(Part):
 	self.gear_box_top_ = Gear_Box_Top(self)
 	self.gear_box_top_screws_ = Gear_Box_Screws(self, label="Top")
 	self.horizontal_shaft_ = Horizontal_Shaft(self)
-	self.north_bearing_ = Bearing(self)
+	self.north_bearing_ = Bearing(self, "North_Bearing")
 	self.north_gear_box_side_ = Gear_Box_Side(self, False)
-	self.south_bearing_ = Bearing(self)
+	self.south_bearing_ = Bearing(self, "South_Bearing")
 	self.south_bevel_gear_ = \
-	  Bevel_Gear(self, part_name = "A 1M 4-Y16016", color = Color("red"))
+	  Bevel_Gear(self, "South_Bevel_Gear", part_name = "A 1M 4-Y16016", color = Color("red"))
 	self.south_gear_box_side_ = Gear_Box_Side(self, True)
-	self.south_shim_ = Shim(self)
-	self.top_bearing_ = Bearing(self)
+	self.south_shim_ = Shim(self, "South_Shim")
+	self.top_bearing_ = Bearing(self, "Top_Bearing")
 	self.top_bevel_gear_ = \
-	  Bevel_Gear(self, part_name = "A 1M 4-Y16016", color = Color("red"))
-	self.top_shim_ = Shim(self)
+	  Bevel_Gear(self, "North_Bevel_Gear", part_name = "A 1M 4-Y16016", color = Color("red"))
+	self.top_shim_ = Shim(self, "Top_Shim")
 	self.turn_table_ = Turn_Table(self)
 	self.turn_table_bottom_screws_ = Turn_Table_Bottom_Screws(self)
 	self.twist_wheel_pulley_ = Pulley(self)
@@ -598,12 +596,12 @@ class Wheel_Assembly(Part):
 
 	#  hub_diameter = vertical_shaft.dx + L(mm = 10),
 	drive_wheel_pulley_top.configure(
-	  hub_diameter = drive_wheel_pulley.dx,
+	  hub_diameter = (drive_wheel_pulley.e.x - drive_wheel_pulley.w.x),
 	  hub_dz = L(mm = 6.00),
-	  lip_diameter = drive_wheel_pulley.dx,
+	  lip_diameter = (drive_wheel_pulley.e.x - drive_wheel_pulley.w.x),
 	  lip_dz = L(mm = 2.00),
 	  set_screw_dz = L(mm = 4.00),
-	  shaft_diameter = vertical_shaft.dx,
+	  shaft_diameter = (vertical_shaft.e.x - vertical_shaft.w.x),
 	  z_bottom = drive_wheel_pulley.t.z)
 
 	# Compute various locations along the Y axis:
@@ -619,10 +617,10 @@ class Wheel_Assembly(Part):
 	# and bottom:
 	self.pocket_wall_dx_l = pocket_wall_dx = L(mm = 4.00)
 	self.pocket_wall_dy_l = pocket_wall_dy = L(mm = 4.00)
-	self.pocket_dx_l = \
-	  gear_box.dx - 2 * gear_box_cover.dx -  2 * pocket_wall_dx
-	self.pocket_dy_l = \
-	  gear_box.dy - 2 * gear_box_side.dy - 2 * pocket_wall_dy
+	self.pocket_dx_l = (gear_box.e.x - gear_box.w.x) - \
+          2 * (gear_box_cover.e.x - gear_box_cover.w.x) -  2 * pocket_wall_dx
+	self.pocket_dy_l = (gear_box.n.y - gear_box.s.y) - \
+          2 * (gear_box_side.n.y - gear_box_side.s.y) - 2 * pocket_wall_dy
 	self.pocket_dz_l = L(mm = 8.00)
 
 	# Place various items into the wheel assembly:
@@ -640,7 +638,7 @@ class Wheel_Assembly(Part):
 	p = P(zero, zero, twist_wheel_pulley.t.z - top_bearing.width_l / 2)
 	top_bearing.place(translate = p)
 
-	# Place the horizontal bevel gear.  (The vertical bevel gear is
+	# Place the horizontal bevel gear.  (The vertical bevel gear si
 	# is already placed relative to the origin.):
 	south_bevel_gear.place(axis = x_axis, rotate = degrees_90)
 
@@ -666,6 +664,15 @@ class Wheel_Assembly(Part):
 # Various parts:
 
 class Bearing(Part):
+    def __init__(self, up, name):
+        """ *Bearing*: ... """
+
+	# Initialize the *Part* super-class:
+	Part.__init__(self, up, name)
+
+	zero = L()
+	self.dx_l = zero
+
     def construct(self):
 	# R6ZZ Shield Ball Bearing from VBX.Com:
 	self.bore_l = bore = L(inch = "3/8")
@@ -673,24 +680,18 @@ class Bearing(Part):
 	self.width_l = width = L(inch = "9/32")
 	self.sides_i = sides = 60
 
+	self.dx_l = self.e.x - self.w.x
+
 	zero = L()
-	self.cylinder(comment = "Bearing Cylinder",
-	  material = Material("steel", ""),
-	  color = Color("blue"),
-	  diameter = diameter, 
-	  start = P(zero, zero, -width / 2),
-	  end =   P(zero, zero,  width / 2),
-	  sides = sides)
-	self.hole(comment = "Bore Hole",
-	  diameter = bore,
-	  start = P(zero, zero, -width / 2),
-	  end =   P(zero, zero,  width / 2),
-	  flags = "t",
-	  sides = sides)
+	self.cylinder("Bearing Cylinder", Material("steel", ""), Color("blue"),
+	  diameter, diameter, P(zero, zero, -width / 2), P(zero, zero,  width / 2),
+          sides, Angle(deg=0.0), "", "t")
+	self.hole("Bore Hole", bore, P(zero, zero, -width / 2), P(zero, zero,  width / 2), "t",
+          sides=sides)
 
 class Belt(Part):
     def __init__(self, up):
-	Part.__init__(self, up)
+	Part.__init__(self, up, "Belt")
 	zero = L()
 	self.x1_l = zero
 	self.y1_l = zero
@@ -742,16 +743,20 @@ class Belt(Part):
 	y2 = self.y2_l
 	z2 = self.z2_l
 	width = self.width_l
+
+	# Some constants:
 	zero = L()
+	degrees0 = Angle(deg=0.0)
 
 	# Figure out direction vector from (*x1*, *y1*) to (*x2*, *y2*).
 	dx = x2 - x1
 	dy = y2 - y1
 	bearing = dy.arc_tangent2(dx)
 
-	# Compute the 4 corners of the belt (*x1a*, *y1a*), (*x1b*, *y1b*),
+	# Compute the 4 corners of the outer belt (*x1a*, *y1a*), (*x1b*, *y1b*),
 	# (*x2a*, *y2a*), and (*x2b*, *y2b*):
 	sqrt2_r1 = math.sqrt(2) * r1
+	sqrt2_r2 = math.sqrt(2) * r2
 	angle1a = bearing + Angle(deg = 135)
 	x1a = x1 + sqrt2_r1.cosine(angle1a)
 	y1a = y1 + sqrt2_r1.sine(angle1a)
@@ -766,38 +771,65 @@ class Belt(Part):
 	x2b = x2 + sqrt2_r2.cosine(angle2b)
 	y2b = y2 + sqrt2_r2.sine(angle2b)
 
-	outer_contour = Contour()
-	outer_contour.bend_append(P(x2a, y2a, z1), r2)
-	outer_contour.bend_append(P(x2b, y2b, z1), r2)
-	outer_contour.bend_append(P(x1b, y1b, z1), r1)
-	outer_contour.bend_append(P(x1a, y1a, z1), r1)
+	p1a = P(x1a, y1a, z1)
+	p1b = P(x1b, y1b, z1)
+	p2a = P(x2a, y2a, z1)
+	p2b = P(x2b, y2b, z1)
+	#print("p1a={0} p1b={1} p2a={2} p2a={3}".format(p1a, p1b, p2a, p2b))
+
+	outer_contour = Contour("outer_contour")
+	outer_contour.bend_append("OC1", P(x2a, y2a, z1), r2)
+	outer_contour.bend_append("OC2", P(x2b, y2b, z1), r2)
+	outer_contour.bend_append("OC3", P(x1b, y1b, z1), r1)
+	outer_contour.bend_append("OC4", P(x1a, y1a, z1), r1)
+
+	# Compute the 4 corners of the belt inside(*x3a*, *y3a*), (*x3b*, *y3b*),
+	# (*x4a*, *y4a*), and (*x4b*, *y4b*):
+	r3 = r1 - L(mm=1.000)
+	r4 = r2 - L(mm=1.000)
+	sqrt2_r3 = math.sqrt(2) * r3
+	sqrt2_r4 = math.sqrt(2) * r4
+
+	x3a = x1 + sqrt2_r3.cosine(angle1a)
+	y3a = y1 + sqrt2_r3.sine(angle1a)
+	x3b = x1 + sqrt2_r3.cosine(angle1b)
+	y3b = y1 + sqrt2_r3.sine(angle1b)
+	sqrt2_r2 = math.sqrt(2) * r3
+	x4a = x2 + sqrt2_r4.cosine(angle2a)
+	y4a = y2 + sqrt2_r4.sine(angle2a)
+	x4b = x2 + sqrt2_r4.cosine(angle2b)
+	y4b = y2 + sqrt2_r4.sine(angle2b)
+
+	inner_contour = Contour("inner_contour")
+	inner_contour.bend_append("IC1", P(x4a, y4a, z1), r4)
+	inner_contour.bend_append("IC2", P(x4b, y4b, z1), r4)
+	inner_contour.bend_append("IC3", P(x3b, y3b, z1), r3)
+	inner_contour.bend_append("IC4", P(x3a, y3a, z1), r3)
 
 	# Compute center of belt:
 	center_z1 = (P(x1, y1, z1) + P(x2, y2, z1)) / 2
 	center_z2 = (P(x1, y1, z2) + P(x2, y2, z2)) / 2
 
-	inner_contour = outer_contour.adjust(
-	  delta = -width,
-	  start = center_z1,
-	  end = center_z2)
-
-	self.extrude(
-	  comment = "Belt ({0},{1},{2}) - ({3},{4},{5})".
-	   format(r1, x1, y1, r2, x2, y2),
-	  material = Material("plastic", "ABS"),
-	  color = Color("brown"),
-	  outer_contour = outer_contour,
-	  inner_contours = [inner_contour],
-	  start = center_z1,
-	  end = center_z2)
+	# Extrude the belt:
+	#print("inner_contour={0}".format(inner_contour))
+	#print("outer_contour={0}".format(outer_contour))
+	contours = [outer_contour, inner_contour]
+	self.extrude("Belt ({0},{1},{2}) - ({3},{4},{5})".format(r1, x1, y1, r2, x2, y2),
+	  Material("plastic", "ABS"), Color("brown"), contours,
+	  center_z1, zero, center_z2, zero, degrees0)
 
 class Bevel_Gear(Part):
-    def __init__(self, up, part_name, color):
-	Part.__init__(self, up)
+    def __init__(self, up, name, color, part_name):
+	""" *Bevel_Gear*: """
 
 	# Check argument types:
-	assert isinstance(part_name, str)
+	assert isinstance(up, Part) or up == None
+	assert isinstance(name, str)
 	assert isinstance(color, Color)
+	assert isinstance(part_name, str)
+
+	# Initialize *Part* super-class:
+	Part.__init__(self, up, name)
 
 	# Lookup up the *bevel_gear*:
 	bevel_gear_table = Bevel_Gear_Table()
@@ -834,23 +866,16 @@ class Bevel_Gear(Part):
 
 	self.nz_l = major_diameter
 
-	self.cylinder(comment = "Bevel Gear Teeth",
-	  material = material,
-	  color = Color("red"),
-	  diameter = outside_diameter, 
-	  start = P(zero, zero, major_diameter - height),
-	  end = P(zero, zero, major_diameter - hub_height),
-	  sides = 30)
-	self.cylinder(comment = "Bevel Gear Hub",
-	  diameter = hub_diameter, 
-	  start = P(zero, zero, major_diameter - hub_height),
-	  end = P(zero, zero, major_diameter),
-	  sides = 30)
-	self.hole(comment = "Bore Hole",
-	  diameter = bore,
-	  start = P(zero, zero, major_diameter),
-	  end = P(zero, zero, major_diameter - height),
-	  flags = "t")
+	self.cylinder("Bevel Gear Teeth", material, Color("red"),
+          outside_diameter, outside_diameter,
+          P(zero, zero, major_diameter - height), P(zero, zero, major_diameter - hub_height),
+          30, Angle(deg=0.0), "", "")
+	self.cylinder("Bevel Gear Hub", material, Color("red"),
+	  hub_diameter, hub_diameter,
+	  P(zero, zero, major_diameter - hub_height), P(zero, zero, major_diameter),
+          30, Angle(deg=0.0), "", "")
+	self.hole("Bore Hole", bore,
+          P(zero, zero, major_diameter), P(zero, zero, major_diameter - height), "t")
 	
 class Bevel_Gear_Data:
     # From www.sdp-si.com:
@@ -977,11 +1002,11 @@ class Bevel_Gear_Table:
 
 class Drive_Motor_Pulley_Screws(Part):
     def __init__(self, up):
-	Part.__init__(self, up)
-	self.screw0_ = Fastener(self, comment="screw0")
-	self.screw1_ = Fastener(self, comment="screw1")
-	self.screw2_ = Fastener(self, comment="screw2")
-	self.screw3_ = Fastener(self, comment="screw3")
+	Part.__init__(self, up, "Drive_Motor_Pulley_Screws")
+	self.screw0_ = Fastener(self, "DMP_screw0")
+	self.screw1_ = Fastener(self, "DMP_screw1")
+	self.screw2_ = Fastener(self, "DMP_screw2")
+	self.screw3_ = Fastener(self, "DMP_screw3")
 
     def construct(self):
 	# Grab some values from *wheel_assembly*:
@@ -1015,7 +1040,7 @@ class Drive_Motor_Pulley_Screws(Part):
 	    x = pulley_x + holes_radius.cosine(angle)
 	    y = pulley_y + holes_radius.sine(angle)
 	    #print("holes_radius={0} x={1} y={2}".format(holes_radius, x, y))
-	    screw.configure(comment = "Pulley Hole {0}".format(index),
+	    screw.configure(comment = "Pulley Hole A {0}".format(index),
 	      flags = "#0-80:hi:fh",
 	      start = P(x, y, z0),
 	      end = P(x, y, z1),
@@ -1027,11 +1052,11 @@ class Drive_Motor_Pulley_Screws(Part):
 
 class Drive_Wheel_Pulley_Screws(Part):
     def __init__(self, up):
-	Part.__init__(self, up)
-	self.screw0_ = Fastener(self, comment="screw0")
-	self.screw1_ = Fastener(self, comment="screw1")
-	self.screw2_ = Fastener(self, comment="screw2")
-	self.screw3_ = Fastener(self, comment="screw3")
+	Part.__init__(self, up, "Drive_Wheel_Pulley_Screws")
+	self.screw0_ = Fastener(self, "DWP_Screw0")
+	self.screw1_ = Fastener(self, "DWP_Screw1")
+	self.screw2_ = Fastener(self, "DWP_Screw2")
+	self.screw3_ = Fastener(self, "DWP_Screw3")
 
     def construct(self):
 	# Grab some values from *wheel_assembly*:
@@ -1060,7 +1085,7 @@ class Drive_Wheel_Pulley_Screws(Part):
 	    x = holes_radius.cosine(angle)
 	    y = holes_radius.sine(angle)
 	    #print("holes_radius={0} x={1} y={2}".format(holes_radius, x, y))
-	    screw.configure(comment = "Pulley Hole {0}".format(index),
+	    screw.configure(comment = "Pulley Hole B {0}".format(index),
 	      flags = "#0-80:hi:fh",
 	      start = P(x, y, z0),
 	      end = P(x, y, z1),
@@ -1072,11 +1097,11 @@ class Drive_Wheel_Pulley_Screws(Part):
 
 class End_Screws(Part):
     def __init__(self, up):
-	Part.__init__(self, up)
-	self.screw0_ = Fastener(self, comment="screw0")
-	self.screw1_ = Fastener(self, comment="screw1")
-	self.screw2_ = Fastener(self, comment="screw2")
-	self.screw3_ = Fastener(self, comment="screw3")
+	Part.__init__(self, up, "End_Screws")
+	self.screw0_ = Fastener(self, "ES=screw0")
+	self.screw1_ = Fastener(self, "ES=screw1")
+	self.screw2_ = Fastener(self, "ES=screw2")
+	self.screw3_ = Fastener(self, "ES=screw3")
 
     def construct(self):
 	# Grab some values from *motor_assembly*:
@@ -1137,6 +1162,13 @@ class End_Screws(Part):
 	#print("Pulley_Screw.dz={0:.3i}in".format(z3 - z0))
 
 class Gear_Box(Part):
+    def __init__(self, up):
+	# Verify argument types:
+        assert isinstance(up, Part) or up == None
+
+	# Initialize *Part* super-class:
+	Part.__init__(self, up, "Gear_Box")
+
     def construct(self):
 	# Grab some values *wheel_assembly*:
 	wheel_assembly = self.up
@@ -1162,12 +1194,20 @@ class Gear_Box(Part):
 	bz = L(mm = -25.00)
 
 	# Now specify the virtual box for the gear box:
-	self.virtual_box(comment = "Virtual box for gear box",
-	  corner1 = P(-dx / 2, -dy / 2, bz),
-	  corner2 = P( dx / 2,  dy / 2, tz))
+	self.virtual_box("Virtual box for gear box",
+          P(-dx / 2, -dy / 2, bz), P( dx / 2,  dy / 2, tz))
 
 class Gear_Box_Bottom(Part):
+    def __init__(self, up):
+	# Verify argument types:
+	assert isinstance(up, Part) or up == None
+
+        # Initialze *Part* super-class:
+        Part.__init__(self, up, "Gear_Box_Bottom")
+
     def construct(self):
+	""" *Gear_Box_Bottom*: """
+
 	# Grab some values from *wheel_assembly*:
 	wheel_assembly = self.up
 	gear_box = wheel_assembly.gear_box_
@@ -1187,21 +1227,22 @@ class Gear_Box_Bottom(Part):
 	self.screw_z_l = z2
 
 	# Get the basic base in place:
-	self.block(comment = "Gear Box Bottom Block",
-	  material = Material("plastic", "ABS"),
-	  color = Color("grey"),
-	  corner1 = P(gear_box.w.x + gear_box_cover.dx,
-	    gear_box.s.y + gear_box_side.dy, z0),
-	  corner2 = P(gear_box.e.x - gear_box_cover.dx,
-	    gear_box.n.y - gear_box_side.dy, z3),
-	  top = "t")
+	self.block("Gear Box Bottom Block", Material("plastic", "ABS"), Color("grey"),
+	  P(gear_box.w.x + gear_box_cover.e.x - gear_box_cover.w.x,
+	    gear_box.s.y + gear_box_side.n.y - gear_box_side.s.y, z0),
+	  P(gear_box.e.x - gear_box_cover.e.x - gear_box_cover.w.x,
+	    gear_box.n.y - gear_box_side.n.y - gear_box_side.s.y, z3),
+	  "t", "")
 
 	# Pocket out some the mounting area:
-	self.simple_pocket(comment = "Gear Box Bottom Pocket",
-	  bottom_corner = P(-pocket_dx / 2, -pocket_dy / 2, z1),
-	  top_corner =    P( pocket_dx / 2,  pocket_dy / 2, z3))
+	self.simple_pocket("Gear Box Bottom Pocket",
+	  P(-pocket_dx / 2, -pocket_dy / 2, z1), P( pocket_dx / 2,  pocket_dy / 2, z3),
+	  L(inch="1/4"), "t", Angle(deg=0.0), "")
 
 class Gear_Box_Cover(Part):
+    def __init__(self, up):
+	Part.__init__(self, up, "Gear_Box_Cover")
+
     def construct(self):
 	# Grab some values from *wheel_assembly*:
 	wheel_assembly = self.up
@@ -1210,13 +1251,10 @@ class Gear_Box_Cover(Part):
 
 	# Construct the cover out of a block of material:
 	dx = L(mm = 2.50)
-	self.block(comment = "Bevel Gear Box Cover Block",
-	  material = Material("plastic", "ABS"),
-	  color = Color("chartreuse"),
-	  corner1 = P(gear_box.w.x,      gear_box.s.y, gear_box.b.z),
-	  corner2 = P(gear_box.w.x + dx,
-	    gear_box.n.y, gear_box.t.z - gear_box_top.base_dz_l),
-	  top = "w")
+	self.block("Bevel Gear Box Cover Block", Material("plastic", "ABS"), Color("chartreuse"),
+	  P(gear_box.w.x,      gear_box.s.y, gear_box.b.z),
+	  P(gear_box.w.x + dx, gear_box.n.y, gear_box.t.z - gear_box_top.base_dz_l),
+	  "w", "")
 
 	# Put some cover mount holes here:
 
@@ -1225,20 +1263,20 @@ class Gear_Box_Screws(Part):
 	""" *Gear_Box_Screws*: """
 
 	# Initialize the *Part* super-class:
-	Part.__init__(self, up)
+	Part.__init__(self, up, "Gear_Box_Screws")
 	assert isinstance(label, str)
 
 	# There are two screws on each of the for sides {East,West,North,South}.
 	# For each side there is a screw one side and one on the other.
 	# Thus, *en_screw* is on the East side with towards the North:
-	self.en_screw_ = Fastener(self, comment="en_screw")
-	self.es_screw_ = Fastener(self, comment="es_screw")
-	self.wn_screw_ = Fastener(self, comment="wn_screw")
-	self.ws_screw_ = Fastener(self, comment="ws_screw")
-	self.ne_screw_ = Fastener(self, comment="ne_screw")
-	self.nw_screw_ = Fastener(self, comment="nw_screw")
-	self.se_screw_ = Fastener(self, comment="se_screw")
-	self.sw_screw_ = Fastener(self, comment="sw_screw")
+	self.en_screw_ = Fastener(self, "GBS_en_screw")
+	self.es_screw_ = Fastener(self, "GBS_es_screw")
+	self.wn_screw_ = Fastener(self, "GBS_wn_screw")
+	self.ws_screw_ = Fastener(self, "GBS_ws_screw")
+	self.ne_screw_ = Fastener(self, "GBS_ne_screw")
+	self.nw_screw_ = Fastener(self, "GBS_nw_screw")
+	self.se_screw_ = Fastener(self, "GBS_se_screw")
+	self.sw_screw_ = Fastener(self, "GBS_sw_screw")
 	self.z_l = L()
 	self._label = label
 	self._gear_box_part = None
@@ -1275,23 +1313,23 @@ class Gear_Box_Screws(Part):
 
 	# Compute various locations along the X axis:
 	x0 = gear_box.w.x
-	x1 = x0 + west_gear_box_cover.dx
+	x1 = x0 + west_gear_box_cover.e.x - west_gear_box_cover.e.x
 	x2 = x1 + wheel_assembly.pocket_wall_dy_l
 	x3 = x2 + pocket_dx * 0.20
 	x4 = x3 + pocket_dx * 0.60
 	x5 = x4 + pocket_dx * 0.20
 	x6 = x5 + wheel_assembly.pocket_wall_dy_l
-	x7 = x6 + east_gear_box_cover.dx
+	x7 = x6 + east_gear_box_cover.e.x - east_gear_box_cover.w.x
 
 	# Compute various locations along the Y Axis:
 	y0 = gear_box.s.y
-	y1 = y0 + south_gear_box_side.dy
+	y1 = y0 + south_gear_box_side.n.y - south_gear_box_side.s.y
 	y2 = y1 + wheel_assembly.pocket_wall_dy_l
 	y3 = y2 + pocket_dy * 0.10
 	y4 = y3 + pocket_dy * 0.80
 	y5 = y4 + pocket_dy * 0.10
 	y6 = y5 + wheel_assembly.pocket_wall_dy_l
-	y7 = y6 + north_gear_box_side.dy
+	y7 = y6 + north_gear_box_side.n.y - north_gear_box_side.s.y
 
 	# *z* is the height for the screws:
 	z = self.z_l
@@ -1379,6 +1417,9 @@ class Gear_Box_Screws(Part):
 	#print("<=Gear_Box_Screws.construct():label='{0}'".format(self._label))
 
 class Gear_Box_Shelf(Part):
+    def __init__(self, up):
+        Part.__init__(self, up, "Gear_Box_Shelf")
+
     def construct(self):
 	# Grab some values from *wheel_assembly*:
 	wheel_assembly = self.up
@@ -1397,45 +1438,34 @@ class Gear_Box_Shelf(Part):
 	pocket_dz = wheel_assembly.pocket_dz_l
 
 	# Compute various Z coordinates:
-	z0 = top_bevel_gear.major_diameter_l + top_shim.dz - pocket_dz
+	z0 = top_bevel_gear.major_diameter_l + (top_shim.t.z - top_shim.b.z) - pocket_dz
 	z1 = z0 + pocket_dz / 2
 	z2 = z1 + pocket_dz / 2
-	z3 = z2 + top_shim.dz
+	z3 = z2 + top_shim.t.z - top_shim.b.z
 	z4 = z3 + bearing.width_l
 	z5 = z4 + bearing_lip_dz
 	self.screw_z_l = z1
 
-	dx = gear_box.dx - 2 * gear_box_cover.dx
-	dy = gear_box.dy - 2 * gear_box_side.dy
+	dx = (gear_box.e.x - gear_box.w.x) - 2 * (gear_box_cover.e.x - gear_box_cover.w.x)
+	dy = (gear_box.n.y - gear_box.s.y) - 2 * (gear_box_side.n.y - gear_box_side.s.y)
 
 	# Generate the shelf block:
-	self.block(comment = "Shelf Block",
-	  material = Material("plastic", "ABS"),
-	  color = Color("gold"),
-	  corner1 = P(-dx / 2, -dy / 2, z0),	# should z0
-	  corner2 = P( dx / 2,  dy / 2, z5),
-	  top = "b")
+	self.block("Shelf Block", Material("plastic", "ABS"), Color("gold"),
+	  P(-dx / 2, -dy / 2, z0), P( dx / 2,  dy / 2, z5), "b", "")
 
 	# Cut a hole for the shaft:
 	zero = L()
-	self.hole(comment = "Shaft Hole",
-	  diameter = twist_wheel_pulley.shaft_diameter_l,
-	  start = P(zero, zero, z0),
-	  end = P(zero, zero, z5),
-	  flags = "t")
+	self.hole("Shaft Hole",
+          twist_wheel_pulley.shaft_diameter_l, P(zero, zero, z0), P(zero, zero, z5), "t")
 
 	# Cut a bearing hole:
-	self.hole(comment = "Bearing Hole",
-	  diameter = bearing.diameter_l,
-	  start = P(zero, zero, z0),
-	  end = P(zero, zero, z4),
-	  flags = "f",
-	  sides = 60)
+	self.hole("Bearing Hole",
+          bearing.diameter_l, P(zero, zero, z0), P(zero, zero, z4), "f", sides=60)
 
 	# Cut out the pocket:
-	self.simple_pocket(comment = "Mount Pocket",
-	  bottom_corner = P(-pocket_dx / 2, -pocket_dy / 2, z0),
-	  top_corner = P( pocket_dx / 2,  pocket_dy / 2, z2))
+	self.simple_pocket("Mount Pocket",
+	  P(-pocket_dx / 2, -pocket_dy / 2, z0), P( pocket_dx / 2,  pocket_dy / 2, z2),
+    	  L(inch="1/4"),  "t", Angle(deg=0.0), "")
 
 class Gear_Box_Side(Part):
     def __init__(self, up, south_side):
@@ -1468,7 +1498,7 @@ class Gear_Box_Side(Part):
 	self.bearing_lip_dy_l = bearing_lip_dy = L(mm = 2.00)
 		
 	# Identify various points on the Y axis:
-	y1 = gear_box.dy / 2
+	y1 = (gear_box.n.y - gear_box.s.y) / 2
 	y2 = y1 - bearing_lip_dy
 	y3 = y2 - bearing.width_l
 	top = "s"
@@ -1479,36 +1509,25 @@ class Gear_Box_Side(Part):
 	    top = "n"
 
 	# Do the main block:
-	self.block(comment = self._name + " Main Block",
-	  material = Material("plastic", "abs"),
-	  color = Color("orange"),
-	  corner1 =
-	    P(gear_box.w.x + gear_box_cover.dx, y1, gear_box.b.z),
-	  corner2 = P(gear_box.e.x - gear_box_cover.dx, y3,
-	    gear_box.t.z - gear_box_top.base_dz_l),
-	  top = top)
+	self.block(self._name + " Main Block", Material("plastic", "abs"), Color("orange"),
+	  P(gear_box.w.x + (gear_box_cover.e.x - gear_box_cover.w.x), y1, gear_box.b.z),
+	  P(gear_box.e.x - (gear_box_cover.e.x - gear_box_cover.w.x), y3,
+          gear_box.t.z - gear_box_top.base_dz_l),
+	  top, "")
 
 	# Do the bearing hole:
 	zero = L()
-	self.hole(comment = "Bearing hole",
-	  diameter = bearing.diameter_l,
-	  start = P(zero, y3, zero),
-	  end = P(zero, y2, zero),
-	  flags = "f",
-	  sides = 60)
+	self.hole("Bearing hole", bearing.diameter_l,
+	  P(zero, y3, zero), P(zero, y2, zero), flags = "f", sides=60)
 
 	# Do a full shaft hole for the *south_side*:
 	if south_side:
 	    diameter = (horizontal_shaft.diameter_l + bearing.diameter_l) / 2
-	    self.hole(comment = "Shaft hole",
-	      diameter = diameter,
-	      start = P(zero, y3, zero),
-	      end = P(zero, y1, zero),
-	      flags = "t")
+	    self.hole("Shaft hole", diameter, P(zero, y3, zero), P(zero, y1, zero), "t")
 
 class Gear_Box_Top(Part):
     def __init__(self, up):
-	Part.__init__(self, up)
+	Part.__init__(self, up, "Gear_Box_Top")
 
     def construct(self):
 	# Grab some values from *wheel_assembly*:
@@ -1536,46 +1555,36 @@ class Gear_Box_Top(Part):
 	#  format(z0, z1, z2, z3, z4))
 
 	# Get the basic base in place:
-	self.block(comment = "Bevel Gear Box Top Block",
-	  material = Material("plastic", "ABS"),
-	  color = Color("azure"),
-	  corner1 = P(-turn_table.size_l / 2, -turn_table.size_l / 2, z2),
-	  corner2 = P( turn_table.size_l / 2,  turn_table.size_l / 2, z4),
-	  top = "b")
+	self.block("Bevel Gear Box Top Block", Material("plastic", "ABS"), Color("azure"),
+	  P(-turn_table.size_l / 2, -turn_table.size_l / 2, z2),
+	  P( turn_table.size_l / 2,  turn_table.size_l / 2, z4),
+	  "b", "")
 
 	# Add some stuff to mount to (merge it into the block):
-	self.block(comment = "Bevel Gear Box Top Mount Block",
-	  corner1 = P(gear_box.w.x + gear_box_cover.dx,
-	    gear_box.s.y + gear_box_side.dy, z0),
-	  corner2 = P(gear_box.e.x - gear_box_cover.dx,
-	    gear_box.n.y - gear_box_side.dy, z3),
-	  top = "b")
+	self.block("Bevel Gear Box Top Mount Block", Material("plastic", "ABS"), Color("red"),
+	  P(gear_box.w.x + (gear_box_cover.e.x - gear_box_cover.w.x),
+	    gear_box.s.y + (gear_box_side.n.y - gear_box_side.s.y), z0),
+	  P(gear_box.e.x - (gear_box_cover.e.x - gear_box_cover.w.x),
+	    gear_box.n.y - (gear_box_side.n.y - gear_box_side.s.y), z3),
+          "b", "")
 
 	# Do the shaft hole:
 	zero = L()
-	self.hole(comment = "Shaft Hole",
-	  diameter = twist_wheel_pulley.shaft_diameter_l,
-	  start = P(zero, zero, z4),
-	  end = P(zero, zero, z0),
-	  flags = "t")
+	self.hole("Shaft Hole",
+	  twist_wheel_pulley.shaft_diameter_l, P(zero, zero, z4), P(zero, zero, z0), "t")
 
 	# Do the turn table mounting holes:
 	for x_sign in [-1, 1]:
 	    x = x_sign * turn_table.bottom_hole_pitch1_l / 2
 	    for y_sign in [-1, 1]:
 		y = y_sign * turn_table.bottom_hole_pitch1_l / 2
-		self.hole(comment =
-		  "Turn Table Hole [{0}, {1}]".format(x_sign, y_sign),
-		  diameter = turn_table.bottom_hole_diameter1_l,
-		  start = P(x, y, z0),
-		  end = P(x, y, z4),
-		  flags = "t")
+		self.hole("Turn Table Hole [{0}, {1}]".format(x_sign, y_sign),
+		  turn_table.bottom_hole_diameter1_l, P(x, y, z0), P(x, y, z4),  "t")
 
 	# Perform the top pocket:
-	self.simple_pocket(comment = "Top Pocket",
-	  top_corner = P(-pocket_dx / 2, -pocket_dy / 2, z0),
-	  bottom_corner = P( pocket_dx / 2,  pocket_dy / 2, z2),
-	  pocket_top = "b")
+	self.simple_pocket("Top Pocket",
+	  P(-pocket_dx / 2, -pocket_dy / 2, z0), P( pocket_dx / 2,  pocket_dy / 2, z2),
+          L(inch="1/4"), "b", Angle(deg=0.0), "")
 
 # The D42DAI from http://www.kjmagnetics.com/ is a 1/4" by 1/8"
 # thick nickel plated diametrically magnetized magnet for $.38/each.
@@ -1583,7 +1592,7 @@ class Gear_Box_Top(Part):
 
 class Magnet(Part):
     def __init__(self, up):
-	Part.__init__(self, up)
+	Part.__init__(self, up, "Magnet")
 	zero = L()
 	Part.diameter_l = L(inch = "1/4")
 	Part.x_l = zero
@@ -1619,18 +1628,16 @@ class Magnet(Part):
 	y = self.y_l
 	z_bottom = self.z_bottom_l 
 	dz = self.dz_l
+	diameter = self.diameter_l
 
 	# Represent the magnet using a cylinder:
-	self.cylinder(comment = "Magnet",
-	  material = Material("iron", "magnetic"),
-	  color = Color("cyan"),
-	  diameter = self.diameter_l,
-	  start = P(x, y, z_bottom),
-	  end = P(x, y, z_bottom + dz))
+	self.cylinder("Magnet", Material("iron", "magnetic"), Color("cyan"),
+	  diameter, diameter, P(x, y, z_bottom), P(x, y, z_bottom + dz),
+          16, Angle(deg=0.0), "", "")
 
 class Motor(Part):
     def __init__(self, up):
-	Part.__init__(self, up)
+	Part.__init__(self, up, "Motor")
 	zero = L()
 	self.shaft_diameter_l = zero
 	self.spur_gear_body_dz_l = zero
@@ -1692,32 +1699,24 @@ class Motor(Part):
 	self.mount_angle2_a = a2 = a1 + Angle(deg = 60)
 	self.mount_angle3_a = a3 = a2 + Angle(deg = 60)
 
-	self.cylinder(comment = "Motor shaft hub",
-	  material = Material("metal", "steel"),
-	  color = Color("magenta"),
-	  diameter = d1,
-	  start = P(x, y, z0),
-	  end = P(x, y, z1 + weld))
-	self.cylinder(comment = "Motor body",
-	  diameter = d4,
-	  start = P(x, y, z1),
-	  end = P(x, y, z3 + weld),
-	  sides = 30)
-	self.cylinder(comment = "Spur gear body",
-	  diameter = d5,
-	  start = P(x, y, z3),
-	  end = P(x, y, z4),
-	  sides = 30)
-	self.cylinder(comment = "Spur gear hub",
-	  diameter = d3,
-	  start = P(x, y - r1, z4 - weld),
-	  end = P(x, y - r1, z5))
-	self.cylinder(comment = "Shaft",
-	  diameter = r1,
-	  start = P(x, y - r1, z5 - weld),
-	  end = P(x, y - r1, z7))
+	degrees0 = Angle(deg=0.0)
+	material = Material("metal", "steel")
+	color = Color("magenta")
+	self.cylinder("Motor shaft hub", material, color,
+	  d1, d1, P(x, y, z0), P(x, y, z1 + weld), 16, degrees0, "", "")
+	self.cylinder("Motor body", material, color,
+	  d4, d4, P(x, y, z1), P(x, y, z3 + weld), 30, degrees0, "", "")
+	self.cylinder("Spur gear body", material, color,
+	  d5, d5, P(x, y, z3), P(x, y, z4), 30, degrees0, "", "")
+	self.cylinder("Spur gear hub", material, color,
+	  d3, d3, P(x, y - r1, z4 - weld), P(x, y - r1, z5), 16, degrees0, "", "")
+	self.cylinder("Shaft", material, color,
+          r1, r1, P(x, y - r1, z5 - weld), P(x, y - r1, z7), 16, degrees0, "", "")
 
 class Motor_Base(Part):
+    def __init__(self, up):
+        Part.__init__(self, up, "Motor_Base")
+
     def construct(self):
 
 	#print("=>Motor_Base.construct()")
@@ -1751,7 +1750,7 @@ class Motor_Base(Part):
 	self.z2_l = z2 = z1 + L(mm = 0.20)
 	self.z3_l = z3 = z0 + floor_dz / 2
 	self.z4_l = z4 = z3 + floor_dz / 2
-	self.z5_l = z5 = z0 + dz - pcb.dz
+	self.z5_l = z5 = z0 + dz - pcb.dz_l
 	self.z6_l = z6 = z0 + dz
 	#print("Motor_Base: z0={0} z3={1} z4={2} z6={3}".format(z0, z3, z4, z6))
 
@@ -1798,8 +1797,8 @@ class Motor_Base(Part):
 	shaft_offset = twist_motor.shaft_offset_l
 	ww = wall_width
 	ww2 = ww / 2
-	ttx2 = turn_table.dx / 2
-	tty2 = turn_table.dy / 2
+	ttx2 = turn_table.dx_l / 2
+	tty2 = turn_table.dy_l / 2
 	clearance = cl =L(mm = 20)
 	jx = kx = L(mm = 5) + x_adjust
 	#jy = motor_assembly.twist_motor_y_l - shaft_offset
@@ -1908,68 +1907,61 @@ class Motor_Base(Part):
 	# extrusion:
 	r = L(mm = 10)
 	lip_y = L(mm = 4.5) + L(mm=4)
-	helper_contour = Contour()
-	helper_contour.bend_append(P(m_x + L(mm=3), m_y, z), r)		# M
-	helper_contour.bend_append(P(z_x + L(mm=3), z_y + lip_y, z), r)	# Z
-	helper_contour.bend_append(P(y_x - L(mm=30), y_y + lip_y, z), r) # Y
-	helper_contour.bend_append(P(x_x, x_y, z), z)			# X
-	helper_contour.bend_append(P(w_x, w_y, z), z)			# W
-	helper_contour.bend_append(P(v_x + L(mm=30), v_y + lip_y, z), r) # V
-	helper_contour.bend_append(P(u_x - L(mm=30), u_y + lip_y, z), r) # U
-	helper_contour.bend_append(P(k_x, k_y, z), z)			# K
-	helper_contour.bend_append(P(j_x, j_y, z), z)			# J
-	#helper_contour.bend_append(P(i_x, i_y, z), z)			# I
-	helper_contour.bend_append(P(hh_x, hh_y + L(mm=20), z), r)	# HH
-	helper_contour.bend_append(P(ee_x, ee_y - lip_y, z), z)		# EE
-	helper_contour.bend_append(P(bb_x + L(mm=20), bb_y - lip_y, z), r) # BB
-	#helper_contour.bend_append(P(a_x, a_y, z), z)			# A
+	helper_contour = Contour("Helper Contour")
+	helper_contour.bend_append("M", P(m_x + L(mm=3), m_y, z), r)		# M
+	helper_contour.bend_append("Z", P(z_x + L(mm=3), z_y + lip_y, z), r)	# Z
+	helper_contour.bend_append("Y", P(y_x - L(mm=30), y_y + lip_y, z), r) # Y
+	helper_contour.bend_append("X", P(x_x, x_y, z), z)			# X
+	helper_contour.bend_append("W", P(w_x, w_y, z), z)			# W
+	helper_contour.bend_append("V", P(v_x + L(mm=30), v_y + lip_y, z), r) # V
+	helper_contour.bend_append("U", P(u_x - L(mm=30), u_y + lip_y, z), r) # U
+	helper_contour.bend_append("K", P(k_x, k_y, z), z)			# K
+	helper_contour.bend_append("J", P(j_x, j_y, z), z)			# J
+	#helper_contour.bend_append("I", P(i_x, i_y, z), z)			# I
+	helper_contour.bend_append("HH", P(hh_x, hh_y + L(mm=20), z), r)	# HH
+	helper_contour.bend_append("EE", P(ee_x, ee_y - lip_y, z), z)		# EE
+	helper_contour.bend_append("BB", P(bb_x + L(mm=20), bb_y - lip_y, z), r) # BB
+	#helper_contour.bend_append("A" P(a_x, a_y, z), z)			# A
 
-	self.extrude(comment = "Motor Bottom Helper Extrusion",
-	  material = Material("plastic", "ABS"),
-	  color = Color("lavender"),
-	  outer_contour = helper_contour,
-	  start = P(zero, zero, z0),
-	  end = P(zero, zero, z2))
+	self.extrude("Motor Bottom Helper Extrusion", Material("plastic", "ABS"), Color("lavender"),
+	  [helper_contour], P(zero, zero, z0), zero, P(zero, zero, z2), zero, Angle(deg=0.0))
 
 	# Make sure the bottom is made out of a single *bottom_contour*
 	# extrusion:
-	bottom_contour = Contour()
-	bottom_contour.bend_append(P(m_x, m_y, z), z)			# M
-	bottom_contour.bend_append(P(z_x, z_y, z), attach_radius)	# Z
-	bottom_contour.bend_append(P(y_x, y_y, z), attach_radius)	# Y
-	bottom_contour.bend_append(P(x_x, x_y, z), z)			# X
-	bottom_contour.bend_append(P(w_x, w_y, z), z)			# W
-	bottom_contour.bend_append(P(v_x, v_y, z), attach_radius)	# V
-	bottom_contour.bend_append(P(u_x, u_y, z), attach_radius)	# U
-	bottom_contour.bend_append(P(j_x, j_y, z), z)			# J
-	bottom_contour.bend_append(P(i_x, i_y, z), z)			# I
-	bottom_contour.bend_append(P(hh_x, hh_y, z), turn_radius)	# HH
-	bottom_contour.bend_append(P(ee_x, ee_y, z), turn_radius)	# EE
-	bottom_contour.bend_append(P(bb_x, bb_y, z), turn_radius)	# BB
-	bottom_contour.bend_append(P(a_x, a_y, z), z)			# A
+	bottom_contour = Contour("Bottom Contour")
+	bottom_contour.bend_append("M", P(m_x, m_y, z), z)			# M
+	bottom_contour.bend_append("Z", P(z_x, z_y, z), attach_radius)	# Z
+	bottom_contour.bend_append("Y", P(y_x, y_y, z), attach_radius)	# Y
+	bottom_contour.bend_append("X", P(x_x, x_y, z), z)			# X
+	bottom_contour.bend_append("W", P(w_x, w_y, z), z)			# W
+	bottom_contour.bend_append("V", P(v_x, v_y, z), attach_radius)	# V
+	bottom_contour.bend_append("U", P(u_x, u_y, z), attach_radius)	# U
+	bottom_contour.bend_append("J", P(j_x, j_y, z), z)			# J
+	bottom_contour.bend_append("I", P(i_x, i_y, z), z)			# I
+	bottom_contour.bend_append("HH", P(hh_x, hh_y, z), turn_radius)	# HH
+	bottom_contour.bend_append("EE", P(ee_x, ee_y, z), turn_radius)	# EE
+	bottom_contour.bend_append("BB", P(bb_x, bb_y, z), turn_radius)	# BB
+	bottom_contour.bend_append("A", P(a_x, a_y, z), z)			# A
 
-	self.extrude(comment = "Motor Bottom Contour Extrusion",
-	  material = Material("plastic", "ABS"),
-	  color = Color("lavender"),
-	  outer_contour = bottom_contour,
-	  start = P(zero, zero, z1),
-	  end = P(zero, zero, z4))
+	self.extrude("Motor Bottom Contour Extrusion", Material("plastic", "ABS"),
+          Color("lavender"), [bottom_contour],
+          P(zero, zero, z1), zero, P(zero, zero, z4), zero, Angle(deg=0.0))
 
 	# Now construct the wall out of a wall extrusion:
-	self.outer_countour_o = outer_contour = Contour()
-	outer_contour.bend_append(P(m_x, m_y, z), z)		# M
-	outer_contour.bend_append(P(l_x, l_y, z), z)		# L
-	outer_contour.bend_append(P(k_x, k_y, z), z)		# K
-	outer_contour.bend_append(P(j_x, j_y, z), z)		# J
-	outer_contour.bend_append(P(i_x, i_y, z), z)		# I
-	outer_contour.bend_append(P(h_x, h_y, z), turn_radius)	# H
-	outer_contour.bend_append(P(g_x, g_y, z), z)		# G
-	outer_contour.bend_append(P(f_x, f_y, z), z)		# F
-	outer_contour.bend_append(P(e_x, e_y, z), turn_radius)	# E
-	outer_contour.bend_append(P(d_x, d_y, z), z)		# D
-	outer_contour.bend_append(P(c_x, c_y, z), z)		# C
-	outer_contour.bend_append(P(b_x, b_y, z), turn_radius)	# B
-	outer_contour.bend_append(P(a_x, a_y, z), z)		# A
+	self.outer_countour_o = outer_contour = Contour("Outer Cnntour")
+	outer_contour.bend_append("M", P(m_x, m_y, z), z)		# M
+	outer_contour.bend_append("L", P(l_x, l_y, z), z)		# L
+	outer_contour.bend_append("K", P(k_x, k_y, z), z)		# K
+	outer_contour.bend_append("J", P(j_x, j_y, z), z)		# J
+	outer_contour.bend_append("I", P(i_x, i_y, z), z)		# I
+	outer_contour.bend_append("H", P(h_x, h_y, z), turn_radius)	# H
+	outer_contour.bend_append("G", P(g_x, g_y, z), z)		# G
+	outer_contour.bend_append("F", P(f_x, f_y, z), z)		# F
+	outer_contour.bend_append("E", P(e_x, e_y, z), turn_radius)	# E
+	outer_contour.bend_append("D", P(d_x, d_y, z), z)		# D
+	outer_contour.bend_append("C", P(c_x, c_y, z), z)		# C
+	outer_contour.bend_append("B", P(b_x, b_y, z), turn_radius)	# B
+	outer_contour.bend_append("A", P(a_x, a_y, z), z)		# A
 
 	# *start* and *end* specify the extrude direction axis:
 	start = P(zero, zero, z0)
@@ -1977,19 +1969,15 @@ class Motor_Base(Part):
 
 	# Make an *inner_contour* that is *wall_width* inside *outer_contour*:
 	inner_contour = outer_contour.adjust(
-	  delta = -wall_width,
-	  start = start,
-	  end = end)
+          "Inner Contour", wall_width, start, end, zero, zero)
 
 	#print("outer_contour={0}".format(outer_contour))
 	#print("inner_contour={0}".format(inner_contour))
 
 	# Now put a wall around and force it to "weld" into the base:
-	self.extrude(comment = "Motor Base Wall",
-	  outer_contour = outer_contour,
-	  inner_contours = [inner_contour],
-	  start = P(zero, zero, z3),
-	  end = P(zero, zero, z6))
+	self.extrude("Motor Base Wall", Material("plastic", "ABS"), Color("lavender"),
+	  [outer_contour, inner_contour],
+          P(zero, zero, z3), zero, P(zero, zero, z6), zero, Angle(deg=0.0))
 
 	self.attach_dx_l = attach_dx = L(inch = "1/2")
 	pcb_n_y = m_y + L(mm = 100)
@@ -1997,25 +1985,21 @@ class Motor_Base(Part):
 	# Now put on some attach panels:
 	# FIXME: *pcb* bounding box is broken:
 	r = attach_radius
-	east_attach_contour = Contour()
-	east_attach_contour.bend_append(P(k_x,             k_y - ww2, z), z)
-	east_attach_contour.bend_append(P(k_x + attach_dx, k_y - ww2, z), z)
-	east_attach_contour.bend_append(P(k_x + attach_dx, pcb_n_y,   z), r)
-	east_attach_contour.bend_append(P(k_x,             pcb_n_y,   z), r)
-	self.extrude(comment = "East Attach",
-	  outer_contour = east_attach_contour,
-	  start = P(z, z, z3),
-	  end =   P(z, z, z6))
+	east_attach_contour = Contour("East Attach Contour")
+	east_attach_contour.bend_append("EAC0", P(k_x,             k_y - ww2, z), z)
+	east_attach_contour.bend_append("EAC1", P(k_x + attach_dx, k_y - ww2, z), z)
+	east_attach_contour.bend_append("EAC2", P(k_x + attach_dx, pcb_n_y,   z), r)
+	east_attach_contour.bend_append("EAC3", P(k_x,             pcb_n_y,   z), r)
+	self.extrude("East Attach", Material("plastic", "ABS"), Color("blue"),
+	  [east_attach_contour], P(z, z, z3), zero, P(z, z, z6), zero, Angle(deg=0.0))
 
-	west_attach_contour = Contour()
-	west_attach_contour.bend_append(P(l_x,             l_y - ww2, z), z)
-	west_attach_contour.bend_append(P(l_x - attach_dx, l_y - ww2, z), z)
-	west_attach_contour.bend_append(P(l_x - attach_dx, pcb_n_y,   z), r)
-	west_attach_contour.bend_append(P(l_x,             pcb_n_y,   z), r)
-	self.extrude(comment = "West Attach",
-	  outer_contour = west_attach_contour,
-	  start = P(z, z, z3),
-	  end =   P(z, z, z6))
+	west_attach_contour = Contour("West Attach Contour")
+	west_attach_contour.bend_append("WAC0", P(l_x,             l_y - ww2, z), z)
+	west_attach_contour.bend_append("WAC1", P(l_x - attach_dx, l_y - ww2, z), z)
+	west_attach_contour.bend_append("WAC2", P(l_x - attach_dx, pcb_n_y,   z), r)
+	west_attach_contour.bend_append("WAC3", P(l_x,             pcb_n_y,   z), r)
+	self.extrude("West Attach", Material("plastic", "ABS"), Color("blue"),
+	  [west_attach_contour], P(z, z, z3), zero, P(z, z, z6), zero, Angle(deg=0.0))
 
 	#self.block(comment = "West Attach",
 	#  corner1 = P(l_x - attach_dx, l_y - ww2, z3),
@@ -2034,12 +2018,8 @@ class Motor_Base(Part):
 
 	# Make a hole for the shaft/wheel pulley/drive pulley to poke through:
 	# Leave some extra *clearance* so that the belts can be tightened.
-	self.hole(comment = "Twist/Drive Shaft Hole",
-	  diameter = turn_table_bore + L(mm = 16.00),
-	  start = P(zero, zero, z4),
-	  end =   P(zero, zero, z0),
-	  flags = "t",
-	  sides = 60)
+	self.hole("Twist/Drive Shaft Hole", turn_table_bore + L(mm = 16.00),
+	  P(zero, zero, z4), P(zero, zero, z0), "t", sides = 60)
 
 	# Now put in the holes for the twist motor:
 	hub_diameter = twist_motor.spur_gear_hub_diameter_l
@@ -2047,24 +2027,17 @@ class Motor_Base(Part):
 	twist_motor_x = motor_assembly.twist_motor_x_l
 	twist_motor_y = motor_assembly.twist_motor_y_l
 	twist_shaft_y = twist_motor_y - twist_motor.shaft_offset_l
-	self.hole(comment = "Twist Motor Shaft Hole",
-	  diameter = twist_hub_diameter,
-	  start = P(twist_motor_x, twist_shaft_y, z4),
-	  end =   P(twist_motor_x, twist_shaft_y, z0),
-	  flags = "t",
-	  sides = 30)
+	self.hole("Twist Motor Shaft Hole", twist_hub_diameter,
+	  P(twist_motor_x, twist_shaft_y, z4), P(twist_motor_x, twist_shaft_y, z0), "t", sides=30)
 
 	# Now put in the hole for the drive motor:
 	drive_hub_diameter = twist_hub_diameter
 	drive_motor_x = motor_assembly.drive_motor_x_l
 	drive_motor_y = motor_assembly.drive_motor_y_l
 	drive_shaft_y = drive_motor_y - drive_motor.shaft_offset_l
-	self.hole(comment = "Drive Motor Shaft Hole",
-	  diameter = drive_hub_diameter,
-	  start = P(drive_motor_x, drive_shaft_y, z4),
-	  end =   P(drive_motor_x, drive_shaft_y, z0),
-	  flags = "t",
-	  sides = 30)
+	self.hole("Drive Motor Shaft Hole", drive_hub_diameter,
+	  P(drive_motor_x, drive_shaft_y, z4), P(drive_motor_x, drive_shaft_y, z0), "t",
+	  sides=30)
 
 	#print("<=Motor_Base.construct()")
 
@@ -2075,20 +2048,21 @@ class Motor_Base(Part):
 	hole_pitch = turn_table_bottom_hole_pitch1
 	for dx in (-hole_pitch/2, hole_pitch/2):
 	    for dy in (-hole_pitch/2, hole_pitch/2):
-		self.hole(comment = "Turntable_hole ({0},{1})".format(dx, dy),
-		  diameter = L(inch = 0.500),
-		  start = P(dx, dy, z4),
-		  end = P(dx, dy, z0),
-		  flags = "t")
+		self.hole("Turntable_hole ({0},{1})".format(dx, dy), L(inch = 0.500),
+		  P(dx, dy, z4), P(dx, dy, z0), "t")
 
 	# Make room for the PCB to fit in:
 	# FIXME: Should use the PCB bounding box which is currently broken!!!:
 	extra = L(mm = .01)
-	self.simple_pocket(comment = "PCB pocket",
-	  bottom_corner = P(j_x - extra, m_y, z5),
-	  top_corner = P(m_x + extra, z_y + extra, z6))
+	epsilon = L(mm=.0000001)
+	self.simple_pocket("PCB pocket",
+          P(j_x - extra, m_y, z5-epsilon), P(m_x + extra, z_y + extra, z6),
+	  L(inch="1/4"), "t", Angle(deg=0.0), "")
 
 class Motor_Base_Cover(Part):
+    def __init__(self, up):
+        Part.__init__(self, up, "Motor_Base_Cover")
+
     def construct(self):
 	#print("=>Motor_Base.construct()")
 	motor_assembly = self.up
@@ -2099,35 +2073,30 @@ class Motor_Base_Cover(Part):
 	z1 = z0 + L(mm = 3.0)
 
 	outer_contour = motor_base.outer_countour_o
-	self.extrude(
-	  comment="Motor_Base_Cover",
-	  material = Material("plastic", "ABS"),
-	  color = Color("yellow"),
-	  outer_contour = outer_contour,
-	  start = P(zero, zero, z0),
-	  end = P(zero, zero, z1))
+	self.extrude("Motor_Base_Cover", Material("plastic", "ABS"), Color("yellow"),
+	  [outer_contour], P(zero, zero, z0), zero, P(zero, zero, z1), zero, Angle(deg=0.0))
 
 class Motor_Base_Screws(Part):
     def __init__(self, up):
-	Part.__init__(self, up)
-	self.screw_a_ = Fastener(self, comment="screw_a")
-	self.screw_c_ = Fastener(self, comment="screw_c")
-	self.screw_d_ = Fastener(self, comment="screw_d")
-	self.screw_f_ = Fastener(self, comment="screw_f")
-	self.screw_g_ = Fastener(self, comment="screw_g")
-	self.screw_i_ = Fastener(self, comment="screw_i")
-	self.screw_j_ = Fastener(self, comment="screw_j")
-	self.screw_k_ = Fastener(self, comment="screw_k")
-	self.screw_l_ = Fastener(self, comment="screw_l")
-	self.screw_m_ = Fastener(self, comment="screw_m")
-	self.screw_n_ = Fastener(self, comment="screw_n")
-	self.screw_o_ = Fastener(self, comment="screw_o")
-	self.screw_p_ = Fastener(self, comment="screw_p")
-	self.screw_q_ = Fastener(self, comment="screw_q")
-	self.drive_screw_a_ = Fastener(self, comment="drive_screw_a")
-	self.drive_screw_b_ = Fastener(self, comment="drive_screw_b")
-	self.twist_screw_a_ = Fastener(self, comment="twist_screw_a")
-	self.twist_screw_b_ = Fastener(self, comment="twist_screw_b")
+	Part.__init__(self, up, "Motor_Base_Screws")
+	self.screw_a_ = Fastener(self, "MBS_screw_a")
+	self.screw_c_ = Fastener(self, "MBS_screw_c")
+	self.screw_d_ = Fastener(self, "MBS_screw_d")
+	self.screw_f_ = Fastener(self, "MBS_screw_f")
+	self.screw_g_ = Fastener(self, "MBS_screw_g")
+	self.screw_i_ = Fastener(self, "MBS_screw_i")
+	self.screw_j_ = Fastener(self, "MBS_screw_j")
+	self.screw_k_ = Fastener(self, "MBS_screw_k")
+	self.screw_l_ = Fastener(self, "MBS_screw_l")
+	self.screw_m_ = Fastener(self, "MBS_screw_m")
+	self.screw_n_ = Fastener(self, "MBS_screw_n")
+	self.screw_o_ = Fastener(self, "MBS_screw_o")
+	self.screw_p_ = Fastener(self, "MBS_screw_p")
+	self.screw_q_ = Fastener(self, "MBS_screw_q")
+	self.drive_screw_a_ = Fastener(self, "MBS_drive_screw_a")
+	self.drive_screw_b_ = Fastener(self, "MBS_drive_screw_b")
+	self.twist_screw_a_ = Fastener(self, "MBS_twist_screw_a")
+	self.twist_screw_b_ = Fastener(self, "MBS_twist_screw_b")
 
     def construct(self):
 	ma = motor_assembly = self.up
@@ -2259,12 +2228,8 @@ class Motor_Base_Screws(Part):
 
 		# Make a recess hole for each screw head:
 		washer_diameter = L(mm = 7.00)
-		mb.hole(comment = "{0} Screw {1} Recess".
-		  format(motor_label, screw_label),
-		  diameter = washer_diameter + L(mm = 1.0),
-		  start = P(x, y, mb.z4_l),
-		  end = P(x, y, mb.z3_l),
-		  flags = "f")
+		mb.hole("{0} Screw {1} Recess".format(motor_label, screw_label),
+		  washer_diameter + L(mm = 1.0), P(x, y, mb.z4_l), P(x, y, mb.z3_l), "f")
 
 		# Now drill the holes:
 		screw.drill(motor, select = "thread")
@@ -2278,7 +2243,7 @@ class Motor_Base_Screws(Part):
 
 class PCB(Part):
     def __init__(self, up):
-	Part.__init__(self, up)
+	Part.__init__(self, up, "PCB")
 	zero = L()
 	self.dz_l = zero
 	self.x1_l = zero
@@ -2328,30 +2293,22 @@ class PCB(Part):
 	self.magnet_z_top_l = as50xx_z_bottom - L(mm = 1.00)
 
 	z = zero = L()
-	outer_contour = Contour()
-	outer_contour.bend_append(P(x2, y1, z), z)
-	outer_contour.bend_append(P(x2, y2, z), z)
-	outer_contour.bend_append(P(x1, y2, z), z)
-	outer_contour.bend_append(P(x1, y1, z), z)
+	outer_contour = Contour("Outer Contour")
+	outer_contour.bend_append("P0", P(x2, y1, z), z)
+	outer_contour.bend_append("P1", P(x2, y2, z), z)
+	outer_contour.bend_append("P2", P(x1, y2, z), z)
+	outer_contour.bend_append("P3", P(x1, y1, z), z)
 
-	inner_contour = outer_contour.adjust(
-	  delta = -L(mm = 10),
-	  maximum_radius = z,
-	  start = center_z0,
-	  end = center_z1)
+	inner_contour = outer_contour.adjust("Inner Contour",
+          -L(mm = 10), center_z0, center_z1, z, zero)
 
-	self.extrude(comment = "PCB block",
-	  material = Material("pcb", "fr4"),
-	  color = Color("light_green"),
-	  outer_contour = outer_contour,
-	  inner_contours = [inner_contour],
-	  start = center_z0,
-	  end = center_z1)
+	self.extrude("PCB block", Material("pcb", "fr4"), Color("light_green"),
+	  [outer_contour, inner_contour], center_z0, zero, center_z1, zero, Angle(deg=0.0))
 
 class Pulley(Part):
     def __init__(self, up):
 	# Initialize *Part* super class:
-	Part.__init__(self, up)
+	Part.__init__(self, up, "Pulley")
 
 	# Initialize configuration varaibles for *self*:
 	zero = L()
@@ -2458,6 +2415,8 @@ class Pulley(Part):
 	set_screw_dz = self.set_screw_dz_l
 	teeth_count = self.teeth_count_i
 	z_bottom = self.z_bottom_l
+
+	degrees0 = Angle(deg=0.0)
 
 	# The following URL has some great diagrams for timing belt
 	# dimensions:
@@ -2631,27 +2590,21 @@ class Pulley(Part):
 
 	x = self.x_l
 	y = self.y_l
-	self.cylinder(comment = "{0} Pulley Lip".format(name),
-	  material = Material("plastic", "ABS"),
-	  color = Color("crimson"),
-	  diameter = lip_diameter,
-	  start = P(x, y, z0),
-	  end = P(x, y, z2),
-	  sides = teeth_count)
+	material = Material("plastic", "ABS")
+	color = Color("crimson")
+	self.cylinder("{0} Pulley Lip".format(name), material, color,
+	  lip_diameter, lip_diameter, P(x, y, z0), P(x, y, z2), teeth_count, degrees0, "", "")
 	#print("Pulley.construct():after lip:dx={0} dy={1} dz={2} x={3} y={4}".
 	#  format(self.dx, self.dy, self.dz, x, y))
 	
 	quick = False
 	#quick = True
 	if quick:
-	    self.cylinder(comment = "{0} Pulley Gear".format(name),
-	    diameter = tooth_radius * 2,
-	    start = P(zero, zero, z1),
-	    end = P(zero, zero, z6),
-	    sides = teeth_count)
+	    self.cylinder("{0} Pulley Gear".format(name), material, color,
+	      diameter, P(zero, zero, z1), P(zero, zero, z6), teeth_count, degrees0, "", "")
 	else:
 	    # Compute *outer_path*:
-	    outer_contour = Contour()
+	    outer_contour = Contour("outer_contour")
 	    for index in range(teeth_count):
 		# Compute the 4 angles:
 		angle0 = tooth_angle * (index + 0.00)
@@ -2661,54 +2614,44 @@ class Pulley(Part):
 		  tooth_angle * (index + w_ratio + x2_ratio / 2 + pw2x_ratio)
 
 		# Add everything to the *outer_path*:
-		outer_contour.bend_append(
+		outer_contour.bend_append("t0",
 		  P(x + r4.cosine(angle0), y + r4.sine(angle0), zero), zero)
-		outer_contour.bend_append(
+		outer_contour.bend_append("t1",
 		  P(x + r4.cosine(angle1), y + r4.sine(angle1), zero), zero)
-		outer_contour.bend_append(
+		outer_contour.bend_append("t2",
 		  P(x + r3.cosine(angle2), y + r3.sine(angle2), zero), zero)
-		outer_contour.bend_append(
+		outer_contour.bend_append("t3",
 		  P(x + r3.cosine(angle3), y + r3.sine(angle3), zero), zero)
 
 	    # Now extrude the shape:
-	    self.extrude(comment = "{0} Gear".format(name),
-	      outer_contour = outer_contour,
-	      start = P(x, y, z1),
-	      end = P(x, y, z6))
+	    self.extrude("{0} Gear".format(name), Material("plastic", "acrylic"), Color("green"),
+	      [outer_contour], P(x, y, z1), zero, P(x, y, z6), zero, Angle(deg=0.0))
 	    #print("Pulley.construct():after extrd:dx={0} dy={1} dz={2}".
 	    #  format(self.dx, self.dy, self.dz))
 
 	if shaft_diameter > zero:
-	    self.hole(comment = "{0} Shaft Hole".format(name),
-	      diameter = shaft_diameter,
-	      start = P(x, y, z6),
-	      end = P(x, y, z0),
-	      flags = "t")
+	    self.hole("{0} Shaft Hole".format(name),
+            shaft_diameter, P(x, y, z6), P(x, y, z0), "t")
 
 	#print("bearing_diameter={0} bearing_width={1}".
 	#  format(bearing_diameter, bearing_width))
 	if bearing_diameter > zero and bearing_width > zero:
-	    self.hole(comment = "{0} Bearing Hole".format(name),
-	      diameter = bearing_diameter,
-	      start = P(x, y, z6),
-	      end = P(x, y, z6 - bearing_width),
-	      flags = "f",
-	      sides = bearing_sides)
+	    self.hole("{0} Bearing Hole".format(name),
+	      bearing_diameter, P(x, y, z6), P(x, y, z6 - bearing_width), "f", sides=bearing_sides)
 
 	# Do the set screw hole if requested:
 	if set_screw_dz > zero:
 	    #print("{0} Set_Screw: x={1} y={2} z0={3} set_screw_dz={4}".
 	    #  format(name, x, y, z0, set_screw_dz))
-	    self.hole(comment = "{0} Set Screw Hole".format(name),
-	      diameter = L(inch = .0890),	# #43 drill for #4-40 tap
-	      start = P(x, y + lip_diameter, z0 + set_screw_dz),
-	      end = P(x, y, z0 + set_screw_dz),
-	      flags = "t")
+	    self.hole("{0} Set Screw Hole".format(name),
+	      L(inch = .0890),	# #43 drill for #4-40 tap
+	      P(x, y + lip_diameter, z0 + set_screw_dz),
+	      P(x, y, z0 + set_screw_dz), "t")
 
 class Pulley_Top(Part):
     def __init__(self, up):
 	# Initialize *Part* super class:
-	Part.__init__(self, up)
+	Part.__init__(self, up, "Pully_Top")
 
 	# Initialize configuration varaibles for *self*:
 	zero = L()
@@ -2790,54 +2733,42 @@ class Pulley_Top(Part):
 
 	# Do the lip:
 	lip_diameter = self.lip_diameter_l
-	self.cylinder(comment = "Lip Cylinder",
-	  material = Material("plastic", "ABS"),
-	  color = Color("pink"),
-	  diameter = lip_diameter,
-	  start = P(x, y, z0),
-	  end = P(x, y, z2),
-	  sides = 60)
+	self.cylinder("Lip Cylinder", Material("plastic", "ABS"), Color("pink"),
+	  lip_diameter, lip_diameter, P(x, y, z0), P(x, y, z2), 60, Angle(deg=0.0), "", "")
 
 	# Do the hub (weld it into the lip using *z1*):
 	hub_diameter = self.hub_diameter_l
 	if hub_diameter > zero:
-	    self.cylinder(comment = "Hub Cylinder",
-	    diameter = hub_diameter,
-	    start = P(x, y, z1),
-	    end = P(x, y, z5),
-	    sides = 30)
+	    self.cylinder("Hub Cylinder", Material("plastic", "ABS"), Color("pink"),
+            hub_diameter, hub_diameter,
+	                  P(x, y, z1), P(x, y, z5), 30, Angle(deg=0.0), "", "",)
 
 	# Do the shaft hole:
 	shaft_diameter = self.shaft_diameter_l
 	if isinstance(shaft_diameter, L) and shaft_diameter > zero:
-	    self.hole(comment = "Shaft Hole",
-	      diameter = shaft_diameter,
-	      start = P(x, y, z5),
-	      end = P(x, y, z0),
-	      flags = "t",
-	      sides = 60)
+	    self.hole("Shaft Hole", shaft_diameter, P(x, y, z5), P(x, y, z0), "t", sides=60)
 
 	# Do the set screw hole:
 	set_screw_dz = self.set_screw_dz_l
 	if set_screw_dz > zero:
-	    self.hole(comment = "Set Screw Hole",
-	      diameter = L(inch = .0890),	# #43 drill for #4-40 tap
-	      start = P(x, y + lip_diameter, z0 + set_screw_dz),
-	      end = P(x, y, z0 + set_screw_dz),
-	      flags = "t")
+	    self.hole("Set Screw Hole",
+	      L(inch = .0890),	# #43 drill for #4-40 tap
+	      P(x, y + lip_diameter, z0 + set_screw_dz),
+	      P(x, y, z0 + set_screw_dz), "t")
 
 	# Do magnet hole:
 	magnet_diameter = self.magnet_diameter_l
 	if magnet_diameter > zero:
-	    self.hole(comment = "Magnet hole",
-	      diameter = magnet_diameter,
-	      start = P(x, y, z5),
-	      end = P(x, y, z4),
-	      flags = "f")
+	    self.hole("Magnet hole", magnet_diameter, P(x, y, z5), P(x, y, z4), "f")
 
 class Shim(Part):
-    def __init__(self, up):
-	Part.__init__(self, up)
+    def __init__(self, up, name):
+	# Verify argument types:
+        assert isinstance(up, Part) or up == None
+        assert isinstance(name, str)
+
+        # Initialize *Part* super-class:
+	Part.__init__(self, up, name)
 
     def construct(self):
 
@@ -2851,16 +2782,13 @@ class Shim(Part):
 	self.width_l = width = L(inch = 0.055)
 	
 	zero = L()
-	self.cylinder(comment = "Shim Cylinder",
-	  material = Material("steel", "stainless"),
-	  color = Color("coral"),
-	  diameter = diameter,
-	  start = P(zero, zero, zero),
-	  end = P(zero, zero, width))
+	self.cylinder("Shim Cylinder", Material("steel", "stainless"), Color("coral"),
+	  diameter, diameter, P(zero, zero, zero), P(zero, zero, width),
+	  16, Angle(deg=0.0), "", "")
 
 class Test(Part):
     def __init__(self, up):
-	Part.__init__(self, up)
+	Part.__init__(self, up, "Test")
 	self.pulley_top_ = Pulley_Top(self)
 	#self.test_block_ = Test_Block(self)
 	#self.test_block_screws_ = Test_Block_Screws(self)
@@ -2939,7 +2867,7 @@ class Test_Block(Part):
 
 class Test_Block_Screws(Part):
     def __init__(self, up):
-	Part.__init__(self, up)
+	Part.__init__(self, up, "Test_Block_Screws")
 	self.screw_2_56_bottom_ = Fastener(self)
 	self.screw_4_40_bottom_ = Fastener(self)
 	self.screw_6_32_bottom_ = Fastener(self)
@@ -3052,7 +2980,7 @@ class Test_Block_Screws(Part):
 
 class Turn_Table(Part):
     def __init__(self, up):
-	Part.__init__(self, up)
+	Part.__init__(self, up, "Turn_Table")
 	zero = L()
 	self.turn_table_bottom_sheet_ = Turn_Table_Sheet(self, is_upper = False)
 	self.turn_table_top_sheet_ = Turn_Table_Sheet(self, is_upper = True)
@@ -3069,14 +2997,16 @@ class Turn_Table(Part):
 	self.top_hole_diameter1_l = top_hole_diameter1 = L(inch = 0.16)
 	self.sheet_thickness_l = sheet_thickness = L(inch = 0.03)
 	self.height_l = height = L(inch = 0.26)
+	self.dx_l = L(inch = 2.70)
+	self.dy_l = L(inch = 2.70)
 
 class Turn_Table_Bottom_Screws(Part):
     def __init__(self, up):
-	Part.__init__(self, up)
-	self.turn_table_bottom_screw0_ = Fastener(self, comment="screw0")
-	self.turn_table_bottom_screw1_ = Fastener(self, comment="screw1")
-	self.turn_table_bottom_screw2_ = Fastener(self, comment="screw2")
-	self.turn_table_bottom_screw3_ = Fastener(self, comment="screw3")
+	Part.__init__(self, up, "Turn_Table_Bottom_Screws")
+	self.turn_table_bottom_screw0_ = Fastener(self, "TTBS_screw0")
+	self.turn_table_bottom_screw1_ = Fastener(self, "TTBS_screw1")
+	self.turn_table_bottom_screw2_ = Fastener(self, "TTBS_screw2")
+	self.turn_table_bottom_screw3_ = Fastener(self, "TTBS_screw3")
 
     def construct(self):
 	# Grab some values from *wheel_assembly*:
@@ -3162,20 +3092,12 @@ class Turn_Table_Sheet(Part):
 	#print("is_upper={0} comment={1} z0={2} z1={3}".
 	#  format(is_upper, comment, z0, z1))
 
-	self.block(comment = comment,
-	  material = Material("Steel", "Galvanized"),
-	  color = Color("purple"),
-	  corner1 = P(-turn_table_size / 2, -turn_table_size / 2, z0),
-	  corner2 = P( turn_table_size / 2,  turn_table_size / 2, z1),
-	  top = "t")
+	self.block(comment, Material("Steel", "Galvanized"), Color("purple"),
+	  P(-turn_table_size / 2, -turn_table_size / 2, z0),
+	  P( turn_table_size / 2,  turn_table_size / 2, z1), "t", "")
 
 	# Bore the hole through the center:
-	self.hole(comment = "Bore Hole",
-	  diameter = turn_table_bore,
-	  start = P(zero, zero, z1),
-	  end =   P(zero, zero, z0),
-	  flags = "t",
-	  sides = 60)
+	self.hole("Bore Hole", turn_table_bore, P(zero, zero, z1), P(zero, zero, z0), "t", sides=60)
 
 	# Do the the holes:
 	for x_sign in [-1, 1]:
@@ -3187,33 +3109,23 @@ class Turn_Table_Sheet(Part):
 		y2 = y_sign * turn_table_bottom_hole_pitch2 / 2
 		y3 = y_sign * turn_table_top_hole_pitch1 / 2
 		if is_upper:
-		    self.hole(comment = "Top Hole1 [{0}, {1}]".
-		      format(x_sign, y_sign),
-		      diameter = turn_table_top_hole_diameter1,
-		      start = P(x3, y3, z1),
-		      end = P(x3, y3, z0),
-		      flags = "t")
+		    self.hole("Top Hole1 [{0}, {1}]".format(x_sign, y_sign),
+		      turn_table_top_hole_diameter1, P(x3, y3, z1), P(x3, y3, z0), "t")
 		else:
-		    self.hole(comment = "Bottom Hole1 [{0}, {1}]".
-		      format(x_sign, y_sign),
-		      diameter = turn_table_bottom_hole_diameter1,
-		      start = P(x1, y1, z1),
-		      end = P(x1, y1, z0),
-		      flags = "t")
-		    self.hole(comment = "Bottom Hole2 [{0}, {1}]".
-		      format(x_sign, y_sign),
-		      diameter = turn_table_bottom_hole_diameter2,
-		      start = P(x2, y2, z1),
-		      end = P(x2, y2, z0),
-		      flags = "t")
+		    self.hole("Bottom Hole1 [{0}, {1}]".format(x_sign, y_sign),
+		      turn_table_bottom_hole_diameter1,
+		      P(x1, y1, z1), P(x1, y1, z0), "t")
+		    self.hole("Bottom Hole2 [{0}, {1}]".format(x_sign, y_sign),
+		      turn_table_bottom_hole_diameter2,
+		      P(x2, y2, z1), P(x2, y2, z0), "t")
 
 class Twist_Motor_Pulley_Screws(Part):
     def __init__(self, up):
-	Part.__init__(self, up)
-	self.screw0_ = Fastener(self, comment="screw0")
-	self.screw1_ = Fastener(self, comment="screw1")
-	self.screw2_ = Fastener(self, comment="screw2")
-	self.screw3_ = Fastener(self, comment="screw3")
+	Part.__init__(self, up, "Twist_Motor_Pulley_Screws")
+	self.screw0_ = Fastener(self, "TMPS_screw0")
+	self.screw1_ = Fastener(self, "TMPS_screw1")
+	self.screw2_ = Fastener(self, "TMPS_screw2")
+	self.screw3_ = Fastener(self, "TMPS_screw3")
 
     def construct(self):
 	# Grab some values from *wheel_assembly*:
@@ -3247,7 +3159,7 @@ class Twist_Motor_Pulley_Screws(Part):
 	    x = pulley_x + holes_radius.cosine(angle)
 	    y = pulley_y + holes_radius.sine(angle)
 	    #print("holes_radius={0} x={1} y={2}".format(holes_radius, x, y))
-	    screw.configure(comment = "Pulley Hole {0}".format(index),
+	    screw.configure(comment = "Pulley Hole C {0}".format(index),
 	      flags = "#0-80:hi:fh",
 	      start = P(x, y, z0),
 	      end = P(x, y, z1),
@@ -3259,11 +3171,11 @@ class Twist_Motor_Pulley_Screws(Part):
 
 class Twist_Wheel_Pulley_Screws(Part):
     def __init__(self, up):
-	Part.__init__(self, up)
-	self.screw0_ = Fastener(self, comment="screw0")
-	self.screw1_ = Fastener(self, comment="screw1")
-	self.screw2_ = Fastener(self, comment="screw2")
-	self.screw3_ = Fastener(self, comment="screw3")
+	Part.__init__(self, up, "Twist_Wheel_Pulley_Screws")
+	self.screw0_ = Fastener(self, "TWPS_screw0")
+	self.screw1_ = Fastener(self, "TWPS_screw1")
+	self.screw2_ = Fastener(self, "TWPS_screw2")
+	self.screw3_ = Fastener(self, "TWPS_screw3")
 
     def construct(self):
 	# Grab some values from *wheel_assembly*:
@@ -3283,8 +3195,8 @@ class Twist_Wheel_Pulley_Screws(Part):
 	# Compute some Z axis locations:
 	z0 = gear_box.t.z - gear_box_top.base_dz_l
 	z1 = z0 + gear_box_top.base_dz_l
-	z2 = z1 + twist_wheel_pulley.dz
-	z3 = z2 + twist_wheel_pulley_top.dz
+	z2 = z1 + (twist_wheel_pulley.t.z - twist_wheel_pulley.b.z)
+	z3 = z2 + (twist_wheel_pulley_top.t.z - twist_wheel_pulley_top.b.z)
 	#print("Twist_Wheel_Pulley_Screws:z0={0} z1={1} z2={2}".
 	#  format(z0, z1, z2))
 
@@ -3298,7 +3210,7 @@ class Twist_Wheel_Pulley_Screws(Part):
 	    x = holes_radius.cosine(angle)
 	    y = holes_radius.sine(angle)
 	    #print("holes_radius={0} x={1} y={2}".format(holes_radius, x, y))
-	    screw.configure(comment = "Pulley Hole {0}".format(index),
+	    screw.configure(comment = "Pulley Hole D {0}".format(index),
 	      flags = "#0-80:hi:fh",
 	      start = P(x, y, z3),
 	      end = P(x, y, z0),
@@ -3310,6 +3222,9 @@ class Twist_Wheel_Pulley_Screws(Part):
 	#print("Pulley_Screw.dz={0:.3i}in".format(z3 - z0))
 
 class Wheel(Part):
+    def __init__(self, up):
+	Part.__init__(self, up, "Wheel")
+
     def construct(self):
 	# Define some constants:
 	self.diameter_l = diameter = L(inch = "4-7/8")
@@ -3317,15 +3232,15 @@ class Wheel(Part):
 	self.radius_l = radius = diameter / 2
 
 	zero = L()
-	self.cylinder(comment = "Basic Wheel",
-	  material = Material(),
-	  color = Color("lime"),
-	  diameter = diameter, 
-	  start = P(zero, -radius - width / 2, zero),
-	  end = P(zero, -radius + width / 2, zero),
-	  sides = 30)
+	self.cylinder("Basic Wheel", Material("rubber", "blue"), Color("lime"),
+	  diameter, diameter,
+	  P(zero, -radius - width / 2, zero), P(zero, -radius + width / 2, zero),
+	  30, Angle(deg=0.0), "", "")
 
 class Horizontal_Shaft(Part):
+    def __init__(self, up):
+	Part.__init__(self, up, "Horizontal_Shaft")
+
     def construct(self):
 	# Grab some values from *wheel_assembly*:
 	wheel_assembly = self.up
@@ -3343,16 +3258,17 @@ class Horizontal_Shaft(Part):
 
 	# Build the shaft:
 	zero = L()
-	self.cylinder(comment = "Horizontal Shaft",
-	  material = Material("Steel", ""),
-	  color = Color("cyan"),
-	  diameter = diameter,
-	  start = P(zero, wheel.w.x, zero),
-          end =   P(zero, gear_box.n.y - gear_box_side.bearing_lip_dy_l, zero))
+	self.cylinder("Horizontal Shaft", Material("Steel", ""), Color("cyan"),
+	  diameter, diameter,
+          P(zero, wheel.w.x, zero), P(zero, gear_box.n.y - gear_box_side.bearing_lip_dy_l, zero),
+                      32, Angle(deg=0.0), "", "")
 
 	#print("Horizontal_Shaft.dy={0:i}in".format(self.dy))
 
 class Vertical_Shaft(Part):
+    def __init__(self, up):
+	Part.__init__(self, up, "Vertical_Shaft")
+
     def construct(self):
 	wheel_assembly = self.up
 	bevel_gear = wheel_assembly.top_bevel_gear_
@@ -3364,31 +3280,23 @@ class Vertical_Shaft(Part):
 	self.diameter_l = diameter = bevel_gear_bore
 
 	zero = L()
-	self.cylinder(comment = "Horizontal Shaft",
-	  material = Material("Steel", ""),
-	  color = Color("cyan"),
-	  diameter = diameter,
-	  start = P(zero, zero, bevel_gear_major_diameter - bevel_gear_height),
-          end = P(zero, zero, L(mm = 108.5)))
+	self.cylinder("Horizontal Shaft", Material("Steel", ""), Color("cyan"),
+	  diameter, diameter,
+	  P(zero, zero, bevel_gear_major_diameter - bevel_gear_height),
+          P(zero, zero, L(mm = 108.5)),
+	  16, Angle(deg=0.0), "", "")
 
 	#print("Vertical_Shaft.dz={0:i}in".format(self.dz))
 
 class Bearing_Starter(Part):
     def construct(self):
 	zero = L()
-	self.cylinder(comment = "Basic Cylinder",
-	  material = Material("plastic", "ABS"),
-	  color = Color("cyan"),
-	  diameter = L(inch = 1.200),
-	  start = P(),
-	  end = P(zero, zero, L(inch = 0.500)),
-	  sides = 60)
-	self.hole(comment = "Bearing Hole",
-	  diameter = L(inch = "7/8") + L(inch = 0.025),
-	  start = self.t,
-	  end = P(zero, zero, self.t.z - L(inch = "1/8")),
-	  flags = "f",
-	  sides = 60)
+	diameter = L(inch = 1.200),
+	self.cylinder("Basic Cylinder", Material("plastic", "ABS"), Color("cyan"),
+	  diameter, diameter,
+	  P(), P(zero, zero, L(inch = 0.500)), sides, Angle(), "", "")
+	self.hole("Bearing Hole", L(inch = "7/8") + L(inch = 0.025),
+	  self.t, P(zero, zero, self.t.z - L(inch = "1/8")), "f", sides = 60)
 
 class Bearing_Ender(Part):
     def construct(self):
@@ -3466,7 +3374,7 @@ class Bevel_Gear_Jig(Part):
 	
 class Counter_Sink(Part):
     def __init__(self, up):
-	Part.__init__(self, up)
+	Part.__init__(self, up, "Counter_Sink")
 	self.block_ = Counter_Sink_Block(self)
 	self.screw_ = Fastener(self)
 
@@ -3496,19 +3404,13 @@ class Counter_Sink_Block(Part):
 if __name__ == "__main__":
     ezcad = EZCAD3(0, adjust = L(mm = -0.10))
     #ezcad = EZCAD3(0)
-    #test = Synchro_Drive(None)
-    test = Base(None)
+    #test = Wheel_Assembly(None)
+    test = Synchro_Drive(None)
+    #test = Base(None)
     #test = Test(None)
     #test = Bearing_Starter(None)
     #test = Bearing_Ender(None)
     #test = Bevel_Gear_Jig(None)
     #test = Counter_Sink(None)
     test.process(ezcad)
-
-
-
-
-
-
-
 
