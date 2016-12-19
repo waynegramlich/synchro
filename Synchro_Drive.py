@@ -1227,12 +1227,18 @@ class Gear_Box_Bottom(Part):
 	self.screw_z_l = z2
 
 	# Get the basic base in place:
+	gear_box_cover_dx = gear_box_cover.e.x - gear_box_cover.w.x
+	gear_box_cover_dy = gear_box_side.n.y - gear_box_side.s.y
 	self.block("Gear Box Bottom Block", Material("plastic", "ABS"), Color("grey"),
-	  P(gear_box.w.x + gear_box_cover.e.x - gear_box_cover.w.x,
-	    gear_box.s.y + gear_box_side.n.y - gear_box_side.s.y, z0),
-	  P(gear_box.e.x - gear_box_cover.e.x - gear_box_cover.w.x,
-	    gear_box.n.y - gear_box_side.n.y - gear_box_side.s.y, z3),
+	  P(gear_box.w.x + gear_box_cover_dx, gear_box.s.y + gear_box_cover_dy, z0),
+	  P(gear_box.e.x - gear_box_cover_dx, gear_box.n.y - gear_box_cover_dy, z3),
 	  "t", "")
+
+	# Mount up the block:
+	self.vice_position("Mount Block", self.t, self.tn, self.tw)
+	self.tooling_plate("Tooling Plate", "2r 2c")
+	self.tooling_plate_mount("Tooling Plate Mount")
+	self.cnc_fence()
 
 	# Pocket out some the mounting area:
 	self.simple_pocket("Gear Box Bottom Pocket",
@@ -3232,10 +3238,10 @@ class Wheel(Part):
 	self.radius_l = radius = diameter / 2
 
 	zero = L()
+	start = P(zero, -radius - width / 2, zero)
+	end = P(zero, -radius + width / 2, zero)
 	self.cylinder("Basic Wheel", Material("rubber", "blue"), Color("lime"),
-	  diameter, diameter,
-	  P(zero, -radius - width / 2, zero), P(zero, -radius + width / 2, zero),
-	  30, Angle(deg=0.0), "", "")
+	  diameter, diameter, start, end, 30, Angle(deg=0.0), "", "")
 
 class Horizontal_Shaft(Part):
     def __init__(self, up):
@@ -3260,7 +3266,7 @@ class Horizontal_Shaft(Part):
 	zero = L()
 	self.cylinder("Horizontal Shaft", Material("Steel", ""), Color("cyan"),
 	  diameter, diameter,
-          P(zero, wheel.w.x, zero), P(zero, gear_box.n.y - gear_box_side.bearing_lip_dy_l, zero),
+          P(zero, wheel.s.y, zero), P(zero, gear_box.n.y - gear_box_side.bearing_lip_dy_l, zero),
                       32, Angle(deg=0.0), "", "")
 
 	#print("Horizontal_Shaft.dy={0:i}in".format(self.dy))
