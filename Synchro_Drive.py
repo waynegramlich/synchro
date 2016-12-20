@@ -1220,19 +1220,35 @@ class Gear_Box_Bottom(Part):
 	pocket_dy = wheel_assembly.pocket_dy_l
 	pocket_dz = wheel_assembly.pocket_dz_l
 
+	gear_box_cover_dx = gear_box_cover.e.x - gear_box_cover.w.x
+	gear_box_cover_dy = gear_box_side.n.y - gear_box_side.s.y
+
+	x1 = gear_box.e.x - gear_box_cover_dx
+	x0 = gear_box.w.x + gear_box_cover_dx
+
+	y1 = gear_box.n.y - gear_box_cover_dy
+	y0 = gear_box.s.y + gear_box_cover_dy
+
+	z3 = gear_box.b.z + base_dz + pocket_dz
+	z2 = gear_box.b.z + base_dz + pocket_dz / 2
+	z1 = gear_box.b.z + base_dz
 	z0 = gear_box.b.z
-	z1 = z0 + base_dz
-	z2 = z1 + pocket_dz / 2
-	z3 = z2 + pocket_dz / 2
+
 	self.screw_z_l = z2
 
 	# Get the basic base in place:
-	gear_box_cover_dx = gear_box_cover.e.x - gear_box_cover.w.x
-	gear_box_cover_dy = gear_box_side.n.y - gear_box_side.s.y
 	self.block("Gear Box Bottom Block", Material("plastic", "ABS"), Color("grey"),
-	  P(gear_box.w.x + gear_box_cover_dx, gear_box.s.y + gear_box_cover_dy, z0),
-	  P(gear_box.e.x - gear_box_cover_dx, gear_box.n.y - gear_box_cover_dy, z3),
-	  "t", "")
+	  P(x0, y0, z0), P(x1, y1, z3), "t", "")
+
+	# Mill out the *outer_contour*:
+	radius = L(inch="1/32")
+	outer_contour = Contour("Outer_Contour")
+        outer_contour.bend_append("SW Bend", P(x0, y0, z3), radius)
+        outer_contour.bend_append("NW Bend", P(x0, y1, z3), radius)
+        outer_contour.bend_append("NE Bend", P(x1, y1, z3), radius)
+        outer_contour.bend_append("SE Bend", P(x1, y0, z3), radius)
+	self.contour("outer_contour",
+	  outer_contour, P(x0, y1, z3), P(x0, y1, 0), L(inch="1/4"), "t")
 
 	# Mount up the block:
 	self.vice_position("Mount Block", self.t, self.tn, self.tw)
@@ -3408,7 +3424,7 @@ class Counter_Sink_Block(Part):
 	  top = "t")
 
 if __name__ == "__main__":
-    ezcad = EZCAD3(0, adjust = L(mm = -0.10))
+    ezcad = EZCAD3(0, directory="/tmp")
     #ezcad = EZCAD3(0)
     #test = Wheel_Assembly(None)
     test = Synchro_Drive(None)
